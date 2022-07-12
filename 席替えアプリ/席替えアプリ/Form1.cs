@@ -123,6 +123,9 @@ namespace 席替えアプリ
         // 起動時に「席替え.xlsx」がデスクトップにあれば読み込む(ない場合は、excel、csvの順で探す)
         private void Form1_Load(object sender, EventArgs e)
         {
+            // 画面の固定
+            MaximizeBox = false;
+
             try
             {   // 席替え後のexcel
                 read_excel_after_seat_change();
@@ -594,25 +597,11 @@ namespace 席替えアプリ
         // 席の変更（席替え後）
         private void replace_seat(object sender, EventArgs e)
         {
-            // フォームから取得
+            
             string[,] members = new string[29, 2];
-            for (var i = 0; i < 29; i++)
-            {
-                var label_name = "label" + (i + 1).ToString();
-                var sl_name = "sl" + (i + 1).ToString();
-                Control c = Controls[label_name];
-                Control sc = Controls[sl_name];
-
-                if (c != null && sc != null)
-                {
-                    members[i, 0] = ((Label)c).Text;
-                    members[i, 1] = ((Label)sc).Text;
-                }
-            }            
 
             // 入れ替え用テキストボックスから学生番号を取得
             string[] num_of_moved_people = new string[8];
-            var count_moved_people = 0;
             
             for (var i = 0; i < num_of_moved_people.Length; i += 2)
             {
@@ -642,22 +631,30 @@ namespace 席替えアプリ
                         {
                             num_of_moved_people[i + 1] = "B00210" + ((TextBox)t2).Text;
                         }
-
-                        count_moved_people += 2;
-                    }
-                    else 
-                    {
-                        break;
                     }
                 }
             }
 
-            // 2次元配列を1次元配列に戻す
-            string[] read_excel_1dim = members.Cast<string>().ToArray();
-
             // read_excelの中からnum_of_moved_peopleに該当する人を探す
-            for (var i = 0; i < count_moved_people; i += 2)
+            for (var i = 0; i < 8; i += 2)
             {
+                for (var j = 0; j < 29; j++)
+                {
+                    var label_name = "label" + (j + 1).ToString();
+                    var sl_name = "sl" + (j + 1).ToString();
+                    Control c = Controls[label_name];
+                    Control sc = Controls[sl_name];
+
+                    if (c != null && sc != null)
+                    {
+                        members[j, 0] = ((Label)c).Text;
+                        members[j, 1] = ((Label)sc).Text;
+                    }
+                }
+
+                // 2次元配列を1次元配列に戻す
+                string[] read_excel_1dim = members.Cast<string>().ToArray();
+
                 // 対象のインデックスを検索して入れ替える
                 var idx1 = Array.IndexOf(read_excel_1dim, num_of_moved_people[i]);
                 var idx2 = Array.IndexOf(read_excel_1dim, num_of_moved_people[i + 1]);
@@ -675,11 +672,12 @@ namespace 席替えアプリ
                     // 入れ替え
                     (members[idx1, 0], members[idx2, 0]) = (members[idx2, 0], members[idx1, 0]);
                     (members[idx1, 1], members[idx2, 1]) = (members[idx2, 1], members[idx1, 1]);
+
+                    put_values_in_the_labels(members);
                 }
             };
-
-            put_values_in_the_labels(members);
         }
+        
 
         //----------------------------------------------------------------------------------------------------------
         // ファイルから読み込み（初期配置）
